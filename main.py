@@ -43,6 +43,8 @@ class Collection:
         record = self.encode_record(key, value)
         if record in self.db.read_bytes():
             print('Skip putting record')
+            return
+
         with self.db.open("a+b") as db:
             db.write(record)
 
@@ -53,9 +55,35 @@ class Collection:
         records = data.split(RECORD_SEPARATOR)
 
         for record in records:
-            print(record)
-            if self.encode_value(key) in record:
-                return self.decode_record(record).value
+            if self.encode_value(self.name) in record:
+                if self.encode_value(key) in record:
+                    value = self.decode_record(record).value
+                    print(value)
+                    return value
+
+    def delete(self, key: str):
+        """Delete key record from db."""
+
+        data = self.db.read_bytes()
+        records = data.split(RECORD_SEPARATOR)
+        delete_record = None
+
+        for record in records:
+            if self.encode_value(self.name) in record:
+                if self.encode_value(key) in record:
+                    print(self.encode_value(key))
+                    delete_record = RECORD_SEPARATOR + record
+                    break
+
+        print(data)
+        if delete_record is None:
+            return
+
+        data.replace(delete_record, b'')
+        print(delete_record)
+        print(data)
+        self.db.write_bytes(data)
+        print(self.db.read_bytes())
 
     def encode_value(self, value: str | int) -> bytes:
         """Encode provided value into bytes."""
@@ -113,7 +141,7 @@ if __name__ == "__main__":
     users.put("alice", 31)
     users.put("bob", 27)
     user = users.get("alice")
-    # users.delete("bob")
+    users.delete("bob")
     # result = users.query(
     #     lambda user: user["age"] > 30
     # )
