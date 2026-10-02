@@ -135,7 +135,7 @@ class Collection:
     def get(self, key: str) -> str | int:
         """Get value for provided key."""
 
-        if self.name in self.database.data_dict and key in self.database.data_dict[self.name]:
+        if self.name in self.database.data_dict and self.contains(key):
             print(f'Get {key}: {self.database.data_dict[self.name][key]}')
             return self.database.data_dict[self.name][key]
 
@@ -145,6 +145,11 @@ class Collection:
         active = 0
         value = self.database.data_dict[self.name][key]
         self.put(key, value, active)
+
+    def contains(self, key: str) -> bool:
+        """Check if key is present in db."""
+
+        return key in self.database.data_dict[self.name]
 
 
 if __name__ == "__main__":
@@ -160,12 +165,15 @@ if __name__ == "__main__":
     links.delete("azure")
     links.get("azure")
     links.get("polarion")
+
     users = db.collection("users")
     users.put("alice", 31)
     users.put("bob", 27)
     user = users.get("alice")
-    users.delete("bob")
+    print(users.contains("alice"))
     users.get("bob")
+    users.delete("bob")
+    print(users.contains("bob"))
 
     end_time = time.time()
     print(f'Time taken: {round(end_time - start_time, 2)} s')
